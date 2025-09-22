@@ -124,3 +124,98 @@ You can use **Azure Cognitive Search (for hybrid search &
 enrichment)** + **Vector DB (for semantic similarity & historical
 complaint matching)** to build an **AI-driven complaint resolution
 system** for dealership/customer care.
+
+# 🚗 Customer Care Complaint Handling System -- Full Architecture
+
+This document describes how call recordings from a dealership's customer
+care center can be ingested, processed, and transformed into actionable
+complaint tickets using **Azure Cognitive Search** and **Vector
+Databases**.
+
+------------------------------------------------------------------------
+
+## 📡 Step 1: Getting the Call Recording
+
+### 📞 Source of Recordings
+
+-   **Call Center Software (PBX/VoIP):**
+    -   Systems like Cisco, Avaya, Genesys, Twilio, or Amazon Connect.
+    -   Automatically record customer calls as WAV/MP3.
+
+### 📂 Storage
+
+-   Recordings are pushed to a secure central repository:
+    -   **Azure Blob Storage** (preferred)
+    -   AWS S3 / on-prem storage as alternatives
+
+------------------------------------------------------------------------
+
+## 🌐 Step 2: Transmission & Processing
+
+1.  **Recording Capture**
+    -   Call ends → audio file + metadata (caller ID, agent ID,
+        timestamp).
+2.  **Secure Upload**
+    -   Upload via API/connector to **Azure Blob Storage**.\
+    -   Use **SAS Tokens** / **Managed Identity** for secure
+        transmission.
+3.  **Event Trigger**
+    -   **Azure Event Grid / Azure Functions** detect new file → trigger
+        pipeline.
+4.  **Processing Pipeline**
+    -   **Azure Speech-to-Text** → transcript from audio.\
+    -   **Azure Cognitive Services (NLP)** → extract complaint details,
+        sentiment, entities.\
+    -   **Vector Embeddings** generated (Azure OpenAI / OpenAI API).\
+    -   Store vectors in **Azure Cognitive Search (vector index)** or
+        **Vector DB (Pinecone/Milvus/Qdrant)**.
+5.  **Complaint Resolution & Ticketing**
+    -   Perform **hybrid search** (keyword + vector similarity).\
+    -   Retrieve historical cases / KB articles.\
+    -   Create ticket in CRM (Dynamics, Zendesk, ServiceNow).
+
+------------------------------------------------------------------------
+
+## 🔐 Security & Compliance
+
+-   **Encryption in Transit**: HTTPS/SAS tokens for uploads.\
+-   **Encryption at Rest**: Blob storage encryption.\
+-   **Access Control**: RBAC for pipeline & supervisors.\
+-   **Retention Policy**: Delete raw audio after X days, keep
+    transcripts.
+
+------------------------------------------------------------------------
+
+## 🏗️ Full Architecture Diagram
+
+``` mermaid
+flowchart TD
+    A[📞 Customer Call] --> B[🎙️ Call Recording (PBX/VoIP)]
+    B --> C[⬆️ Upload to Azure Blob Storage]
+    C --> D[⚡ Event Trigger (Azure Event Grid/Function)]
+    D --> E[🗣️ Azure Speech-to-Text: Transcribe Call]
+    E --> F[🧠 NLP Processing (NER, Sentiment, Key Phrases)]
+    F --> G[🔢 Embeddings (Azure OpenAI)]
+    G --> H1[(📚 Azure Cognitive Search Index)]
+    G --> H2[(🗄️ Vector DB: Pinecone/Milvus/Qdrant)]
+    H1 --> I[🔍 Hybrid Search: Similar Complaints + KB]
+    H2 --> I
+    I --> J[🎫 Ticket Creation in CRM (Dynamics/Zendesk/ServiceNow)]
+    J --> K[✅ Resolution Provided to Customer]
+```
+
+------------------------------------------------------------------------
+
+## ✅ Summary
+
+-   **Call Recording** captured at telephony system.\
+-   **Transmitted securely** to Azure Blob Storage.\
+-   **Event-driven pipeline** handles transcription, NLP, and vector
+    indexing.\
+-   **Azure Cognitive Search + Vector DB** enable semantic complaint
+    retrieval.\
+-   **Ticket auto-created** in CRM with suggested resolution.
+
+This solution improves **customer satisfaction, agent efficiency, and
+consistency** of complaint resolution.
+
